@@ -1,0 +1,7 @@
+{
+  "notification_id": "ntf-demo-001",
+  "donor_id": "D00001",
+  "template": "request_wave",
+  "request_id": "RQ-DEMO",
+  "callback_url": "http://localhost:8000"
+}

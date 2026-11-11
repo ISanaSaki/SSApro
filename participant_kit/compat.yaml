@@ -1,0 +1,107 @@
+# product -> recipient group -> compatible donor groups (fictional contest rules)
+red_cells:
+  O+:
+  - O+
+  - O-
+  A+:
+  - O+
+  - A+
+  - O-
+  - A-
+  B+:
+  - O+
+  - B+
+  - O-
+  - B-
+  AB+:
+  - O+
+  - A+
+  - B+
+  - AB+
+  - O-
+  - A-
+  - B-
+  - AB-
+  O-:
+  - O-
+  A-:
+  - O-
+  - A-
+  B-:
+  - O-
+  - B-
+  AB-:
+  - O-
+  - A-
+  - B-
+  - AB-
+platelets:
+  O+:
+  - O+
+  - O-
+  A+:
+  - A+
+  - A-
+  B+:
+  - B+
+  - B-
+  AB+:
+  - AB+
+  - AB-
+  O-:
+  - O+
+  - O-
+  A-:
+  - A+
+  - A-
+  B-:
+  - B+
+  - B-
+  AB-:
+  - AB+
+  - AB-
+plasma:
+  O+:
+  - O+
+  - A+
+  - B+
+  - AB+
+  - O-
+  - A-
+  - B-
+  - AB-
+  A+:
+  - A+
+  - AB+
+  - A-
+  - AB-
+  B+:
+  - B+
+  - AB+
+  - B-
+  - AB-
+  AB+:
+  - AB+
+  - AB-
+  O-:
+  - O+
+  - A+
+  - B+
+  - AB+
+  - O-
+  - A-
+  - B-
+  - AB-
+  A-:
+  - A+
+  - AB+
+  - A-
+  - AB-
+  B-:
+  - B+
+  - AB+
+  - B-
+  - AB-
+  AB-:
+  - AB+
+  - AB-

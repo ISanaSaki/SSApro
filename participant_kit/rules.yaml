@@ -1,0 +1,25 @@
+# Contest values for a fictional world. NOT medical advice.
+version: 1
+age_min: 18
+age_max: 65
+weight_min_kg: 50
+interval_wb_male: 60
+interval_wb_female: 90
+interval_apheresis: 14
+cross_block: 14
+event_deferral:
+  tattoo: 180
+  travel_risk: 90
+sla:
+  critical: 90
+  urgent: 240
+  planned: 1440
+shelf_days:
+  red_cells: 42
+  platelets: 5
+  plasma: 365
+proc_min: 20
+visit_min:
+  red_cells: 20
+  platelets: 90
+  plasma: 45

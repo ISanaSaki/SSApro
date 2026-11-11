@@ -1,0 +1,10 @@
+{
+  "dispatch_id": "disp-demo-001",
+  "request_id": "RQ-DEMO",
+  "center_id": "MC1",
+  "blood_group": "O-",
+  "product": "red_cells",
+  "units": 1,
+  "hospital_id": "H07",
+  "recipient_blood_group": "O+"
+}

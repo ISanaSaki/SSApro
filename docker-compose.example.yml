@@ -1,0 +1,28 @@
+# OPTIONAL example stack for a generic Python team service.
+# This is a template only: adapt the image, command and healthcheck to your own stack.
+# The contest does not require Docker Compose; teams choose their own runtime.
+#
+#   cp .env.example .env   # then edit values
+#   docker compose up -d
+#
+# The organizer harness only needs your service to expose GET /health and the
+# documented /requests and /callbacks endpoints, reachable at SELF_URL.
+services:
+  team-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.example
+    image: bloodnet-team-app
+    env_file: .env
+    environment:
+      # Fixed local-practice defaults (see .env.example); no tokens to provision.
+      GATEWAY_URL: ${GATEWAY_URL:-http://localhost:9100}
+      TRAVEL_URL: ${TRAVEL_URL:-http://localhost:9200}
+      INVENTORY_URL: ${INVENTORY_URL:-http://localhost:9300}
+      SELF_URL: ${SELF_URL:-http://localhost:8000}
+      HOSPITAL_TOKEN: ${HOSPITAL_TOKEN:-hospital-token}
+      COORDINATOR_TOKEN: ${COORDINATOR_TOKEN:-coordinator-token}
+      KIT_PATH: ${KIT_PATH:-./participant_kit}
+    ports:
+      - "${PORT:-8000}:8000"
+    restart: "no"

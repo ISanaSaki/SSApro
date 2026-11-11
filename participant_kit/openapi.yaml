@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: BloodNet Participant API
+  version: 1.1.0
+  description: >
+    Contest-only API contract. All records and rules are synthetic and are not
+    medical guidance. Simulation time is supplied by the organizer Gateway clock.
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: Requests
+  - name: Callbacks
+  - name: Health
+components:
+  securitySchemes:
+    hospitalBearer:
+      type: http
+      scheme: bearer
+      description: Hospital service token supplied in the participant environment.
+    coordinatorBearer:
+      type: http
+      scheme: bearer
+      description: Coordinator token supplied only to the evaluation environment.
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+    NewRequest:
+      type: object
+      additionalProperties: false
+      required: [hospital_id, blood_group, product, units, urgency]
+      properties:
+        hospital_id: {type: string, example: H07}
+        blood_group: {type: string, enum: [O+, A+, B+, AB+, O-, A-, B-, AB-]}
+        product: {type: string, enum: [red_cells, platelets, plasma]}
+        units: {type: integer, minimum: 1, maximum: 20}
+        urgency: {type: string, enum: [critical, urgent, planned]}
+        note: {type: string, maxLength: 500}
+    RequestStatus:
+      type: string
+      enum: [pending_review, open, mobilizing, partially_fulfilled, fulfilled, cancelled, expired]
+    RequestState:
+      type: object
+      required: [request_id, status, needed, confirmed, en_route, arrived, fulfilled]
+      properties:
+        request_id: {type: string}
+        status: {$ref: '#/components/schemas/RequestStatus'}
+        needed: {type: integer, minimum: 1}
+        confirmed: {type: integer, minimum: 0}
+        en_route: {type: integer, minimum: 0}
+        arrived: {type: integer, minimum: 0}
+        fulfilled: {type: integer, minimum: 0}
+    DonorResponseCallback:
+      type: object
+      required: [event_id, request_id, donor_id, notification_id, response, sim_time]
+      properties:
+        event_id: {type: string}
+        request_id: {type: string}
+        donor_id: {type: string}
+        notification_id: {type: string}
+        response: {type: string, enum: [accepted, declined]}
+        reason: {type: string, description: "Optional decline reason, e.g. not_eligible (incl. active temporary deferral), busy."}
+        sim_time: {type: number}
+    DonorProgressCallback:
+      type: object
+      required: [event_id, request_id, donor_id, event, sim_time]
+      properties:
+        event_id: {type: string}
+        request_id: {type: string}
+        donor_id: {type: string}
+        event: {type: string, enum: [en_route, arrived, screen_pass, screen_fail, donated, no_show]}
+        reason: {type: string, description: "Optional detail, e.g. no_show reason: confirmation_timeout or queue_abandoned."}
+        sim_time: {type: number}
+    GatewayStatusCallback:
+      type: object
+      required: [event_id, notification_id, request_id, donor_id, status, sim_time]
+      properties:
+        event_id: {type: string}
+        notification_id: {type: string}
+        request_id: {type: string}
+        donor_id: {type: string}
+        status: {type: string, enum: [queued, sent, delivered, failed, expired]}
+        sim_time: {type: number}
+    Approval:
+      type: object
+      properties:
+        approved: {type: boolean, default: true}
+        note: {type: string}
+    AmendRequest:
+      type: object
+      additionalProperties: false
+      required: [urgency]
+      properties:
+        urgency: {type: string, enum: [critical, urgent, planned]}
+paths:
+  /health:
+    get:
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: {type: boolean}
+  /requests:
+    post:
+      tags: [Requests]
+      security: [{hospitalBearer: []}]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 128}
+        - name: X-Sim-Time
+          in: header
+          required: false
+          description: Simulation minute from GET /clock; never use wall-clock time for simulation decisions.
+          schema: {type: number}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NewRequest'}
+      responses:
+        '201': {description: Request created.}
+        '200': {description: Idempotent replay with same key and same body.}
+        '400': {description: Invalid request or missing idempotency key.}
+        '401': {description: Missing or invalid hospital token.}
+        '422': {description: Idempotency key reused with a different body.}
+        '429': {description: Rate limited; honor Retry-After.}
+        '503': {description: Temporarily unavailable; retry with same idempotency key.}
+  /requests/{id}:
+    get:
+      tags: [Requests]
+      security: [{hospitalBearer: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200':
+          description: Current request counters and state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RequestState'}
+        '401': {description: Unauthorized.}
+        '404': {description: Request not found.}
+  /requests/{id}/cancel:
+    post:
+      tags: [Requests]
+      security: [{hospitalBearer: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Request cancelled; repeated cancellation is a no-op.}
+        '401': {description: Unauthorized.}
+        '404': {description: Request not found.}
+  /requests/{id}/approve:
+    post:
+      tags: [Requests]
+      security: [{coordinatorBearer: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Approval'}
+      responses:
+        '200': {description: Pending request approved.}
+        '409': {description: Request is not pending review or cannot be approved.}
+        '401': {description: Coordinator token required.}
+        '404': {description: Request not found.}
+  /requests/{id}/amend:
+    post:
+      tags: [Requests]
+      security: [{hospitalBearer: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AmendRequest'}
+      responses:
+        '200': {description: Request urgency updated.}
+        '409': {description: Request cannot be amended in its current state.}
+        '401': {description: Unauthorized.}
+        '404': {description: Request not found.}
+  /callbacks/donor-response:
+    post:
+      tags: [Callbacks]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DonorResponseCallback'}
+      responses:
+        '200': {description: Callback accepted; duplicate event_id must be idempotent.}
+        '400': {description: Invalid callback.}
+  /callbacks/donor-progress:
+    post:
+      tags: [Callbacks]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DonorProgressCallback'}
+      responses:
+        '200': {description: Callback accepted; duplicate event_id must be idempotent.}
+        '400': {description: Invalid callback.}
+  /callbacks/gateway-status:
+    post:
+      tags: [Callbacks]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GatewayStatusCallback'}
+      responses:
+        '200': {description: Callback accepted; duplicate event_id must be idempotent.}
+        '400': {description: Invalid callback.}

@@ -1,0 +1,7 @@
+{
+  "event_id": "ev-demo-002",
+  "request_id": "RQ-DEMO",
+  "donor_id": "D00001",
+  "event": "donated",
+  "sim_time": 90.0
+}

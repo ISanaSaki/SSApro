@@ -1,0 +1,18 @@
+# OPTIONAL example Dockerfile for a generic Python team service.
+# Adapt to your own stack; the contest does not mandate Docker.
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+# Install your dependencies (create your own requirements.txt if needed).
+COPY requirements.txt* ./
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+
+# Copy your application source (adjust to your layout).
+COPY . .
+
+EXPOSE 8000
+# Your service must start cleanly and expose GET /health.
+# Read GATEWAY_URL / TRAVEL_URL / INVENTORY_URL / SELF_URL from the environment.
+CMD ["python", "app.py"]

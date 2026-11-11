@@ -1,0 +1,8 @@
+{
+  "event_id": "ev-demo-001",
+  "notification_id": "ntf-demo-001",
+  "request_id": "RQ-DEMO",
+  "donor_id": "D00001",
+  "response": "accepted",
+  "sim_time": 42.5
+}
