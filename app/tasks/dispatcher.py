@@ -138,5 +138,6 @@ class BackgroundDispatcher:
                 except InvalidTransitionError:
                     pass
             await services.request_repo.update(r)
+            d.outcome = "delivered"
             if r.status == "fulfilled":
                 await services.invitation_service.stop_outreach(d.request_id, "not_needed")
