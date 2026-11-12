@@ -111,4 +111,9 @@ def build_services(session, state) -> Services:
 
 async def get_services(request: Request):
     async with request.app.state.sessionmaker() as session:
-        yield build_services(session, request.app.state)
+        try:
+            yield build_services(session, request.app.state)
+            await session.commit()
+        except BaseException:
+            await session.rollback()
+            raise

@@ -40,17 +40,22 @@ class BackgroundDispatcher:
     async def _tick(self) -> None:
         async with self._sessionmaker() as session:
             services = self._build_services(session)
-            sim = await self._clock.now_sim()
-            for task in await services.task_repo.pop_due(sim, limit=50):
-                try:
-                    await self._handle(services, task, sim)
-                    await services.task_repo.finish(task.id, True)
-                except Exception:
-                    logger.exception("task failed id=%s type=%s request=%s", task.id,
-                                     task.task_type, task.request_id)
-                    await services.task_repo.finish(task.id, False)
-            await services.sla_service.check_expired(sim)
-            await self._deliver_stock(services, sim)
+            try:
+                sim = await self._clock.now_sim()
+                for task in await services.task_repo.pop_due(sim, limit=50):
+                    try:
+                        await self._handle(services, task, sim)
+                        await services.task_repo.finish(task.id, True)
+                    except Exception:
+                        logger.exception("task failed id=%s type=%s request=%s", task.id,
+                                         task.task_type, task.request_id)
+                        await services.task_repo.finish(task.id, False)
+                await services.sla_service.check_expired(sim)
+                await self._deliver_stock(services, sim)
+                await session.commit()
+            except BaseException:
+                await session.rollback()
+                raise
 
     async def _handle(self, services, task: Task, sim: float) -> None:
         if task.task_type == "send_wave":
