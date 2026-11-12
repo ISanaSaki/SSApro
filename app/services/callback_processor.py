@@ -45,6 +45,9 @@ class CallbackProcessor:
                 r.updated_sim_min = sim_min
                 await self._request_repo.update(r)
                 await self._send_confirmed(event)
+        notification = await self._notification_repo.get(payload.get("notification_id"))
+        if notification is not None:
+            notification.response = payload["response"]
         return True
 
     async def _send_confirmed(self, event: Event) -> None:

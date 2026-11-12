@@ -76,8 +76,10 @@ class RequestService:
             last_wave_sim_min=None,
         )
         try:
-            await self._request_repo.create(req)
+            created = await self._request_repo.create(req)
         except IntegrityError:
+            created = None
+        if created is None:
             existing = await self._request_repo.get_by_idempotency_key(idempotency_key)
             if existing is not None and existing.idempotency_body_hash == body_hash:
                 return self._replay(existing)
