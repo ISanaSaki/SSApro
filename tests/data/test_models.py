@@ -97,6 +97,18 @@ async def test_init_engine_applies_wal_pragmas(tmp_path):
     assert journal_mode == "wal"
     assert busy_timeout == 10000
     assert foreign_keys == 1
+    await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_init_engine_accepts_lowercase_settings(tmp_path):
+    db_path = tmp_path / "lower.db"
+    settings = SimpleNamespace(database_url=f"sqlite+aiosqlite:///{db_path}")
+    engine = init_engine(settings)
+    async with engine.connect() as conn:
+        journal_mode = (await conn.execute(text("PRAGMA journal_mode"))).scalar()
+    assert journal_mode == "wal"
+    await engine.dispose()
 
 
 @pytest.mark.asyncio
@@ -111,6 +123,8 @@ async def test_get_session_commits_on_success(tmp_path):
 
     async for session in get_session():
         assert (await session.get(Request, "R-000000000001")) is not None
+
+    await engine.dispose()
 
 
 @pytest.mark.asyncio
@@ -129,3 +143,5 @@ async def test_get_session_rolls_back_on_error(tmp_path):
     async for session in get_session():
         result = await session.execute(text("SELECT COUNT(*) FROM requests"))
         assert result.scalar_one() == 0
+
+    await engine.dispose()
