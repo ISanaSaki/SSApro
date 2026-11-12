@@ -37,6 +37,15 @@ class Settings(BaseSettings):
     ai_model_path: str = "./app/ai/model/ranker.joblib"
     disable_outreach: bool = False
 
+    # app/data (DEV-02) reads these settings with env-style uppercase names
+    @property
+    def DATABASE_URL(self) -> str:
+        return self.database_url
+
+    @property
+    def KIT_PATH(self) -> str:
+        return self.kit_path
+
 
 @lru_cache(maxsize=1)
 def load_settings() -> Settings:
