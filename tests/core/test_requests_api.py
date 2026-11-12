@@ -1,9 +1,15 @@
 import httpx
 import pytest
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import StaticPool
 
-from _helpers import FakeClock, FakeGateway, FakeInventory
-from app.main import create_app
+import app.data.database as database_module
+import app.data.loader as loader_module
+import app.main as main_module
+from _helpers import FakeClock, FakeGateway, FakeInventory, build_kit
+from app.config import Settings
+from app.data.models import Hospital
 
 AUTH = {"Authorization": "Bearer hospital-token"}
 COORD = {"Authorization": "Bearer coordinator-token"}
@@ -12,9 +18,15 @@ BODY = dict(hospital_id="H01", blood_group="O-", product="red_cells", units=2,
 
 
 @pytest_asyncio.fixture(loop_scope="function")
-async def client(store, add_hospital):
-    add_hospital("H01")
-    app = create_app()
+async def client(monkeypatch):
+    settings = Settings(_env_file=None, database_url="sqlite+aiosqlite://")
+    monkeypatch.setattr(main_module, "load_settings", lambda: settings)
+    monkeypatch.setattr(database_module, "init_engine",
+                        lambda _s: create_async_engine("sqlite+aiosqlite://",
+                                                       poolclass=StaticPool))
+    monkeypatch.setattr(loader_module, "load_kit_data",
+                        lambda _s, _e: _load_light_kit())
+    app = main_module.create_app()
     transport = httpx.ASGITransport(app=app)
     clock = FakeClock(100.0)
     gateway = FakeGateway()
@@ -24,9 +36,16 @@ async def client(store, add_hospital):
         app.state.gateway = gateway
         app.state.inventory = inventory
         await app.state.dispatcher.stop()
+        async with app.state.sessionmaker() as session:
+            session.add(Hospital(hospital_id="H01", name="Demo Hospital", lat=0.0, lon=0.0))
+            await session.commit()
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
             c.app = app
             yield c
+
+
+async def _load_light_kit():
+    return build_kit()
 
 
 def key(value="key-1"):

@@ -108,13 +108,14 @@ class RequestRepository:
     def __init__(self, session):
         pass
 
-    async def create(self, req: Request) -> None:
+    async def create(self, req: Request) -> Request:
         s = _store()
         for r in s.requests.values():
             if r.idempotency_key == req.idempotency_key:
                 raise IntegrityError("UNIQUE constraint failed: requests.idempotency_key", {},
                                      Exception("unique"))
         s.requests[req.id] = req
+        return req
 
     async def get(self, request_id: str):
         return _store().requests.get(request_id)
@@ -375,8 +376,6 @@ def _install_data_shim() -> None:
 
 _install_data_shim()
 
-import app.data.repositories as shim_repos  # noqa: E402
-
 from app.config import Settings  # noqa: E402
 from app.domain.ranking import TravelTimeRankingStrategy  # noqa: E402
 from app.ports.clients import DispatchResult, SendResult  # noqa: E402
@@ -436,7 +435,7 @@ class FakeInventory:
 @pytest.fixture
 def store():
     s = Store()
-    shim_repos.set_store(s)
+    set_store(s)
     return s
 
 
