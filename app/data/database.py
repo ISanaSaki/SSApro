@@ -16,7 +16,10 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 def init_engine(settings) -> AsyncEngine:
     """Build the async engine and wire SQLite pragmas plus the global session factory."""
     global _session_factory
-    engine = create_async_engine(settings.DATABASE_URL)
+    database_url = (
+        getattr(settings, "DATABASE_URL", None) or getattr(settings, "database_url", None)
+    )
+    engine = create_async_engine(database_url)
 
     @event.listens_for(engine.sync_engine, "connect")
     def _apply_sqlite_pragmas(dbapi_connection, _connection_record):

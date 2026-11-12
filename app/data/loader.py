@@ -192,7 +192,7 @@ async def _apply_deferrals(conn: AsyncConnection, path: Path) -> int:
 
 async def load_kit_data(settings, engine: AsyncEngine) -> KitData:
     """Load all kit inputs once at startup; kit tables are cleared first so restarts are safe."""
-    kit_path = Path(settings.KIT_PATH)
+    kit_path = Path(getattr(settings, "KIT_PATH", None) or getattr(settings, "kit_path", None))
     if not kit_path.is_dir():
         raise FileNotFoundError(f"kit path does not exist: {kit_path}")
 
