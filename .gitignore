@@ -3,12 +3,22 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
+
+# Environment and secrets
 .env
+
+# Local app state
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
 
 # Practice / evaluation outputs
 run_out/
 out/
 outputs/
+logs/
 *.log
 
 # OS / editor
@@ -16,8 +26,3 @@ outputs/
 Thumbs.db
 .idea/
 .vscode/
-
-# Local app state (keep your implementation's artifacts out of the contest repo
-# unless they are required to run it)
-*.sqlite3
-*.db
