@@ -64,6 +64,15 @@ async def test_missing_kit_dir_fails_fast(engine):
 
 
 @pytest.mark.asyncio
+async def test_lowercase_kit_path_settings(engine, mini_kit, session_maker):
+    settings = SimpleNamespace(kit_path=str(mini_kit))
+    await load_kit_data(settings, engine)
+    async with session_maker() as session:
+        donors = (await session.execute(select(Donor))).scalars().all()
+    assert len(donors) == DONOR_COUNT
+
+
+@pytest.mark.asyncio
 async def test_reload_is_idempotent(engine, kit_settings, session_maker):
     await load_kit_data(kit_settings, engine)
     await load_kit_data(kit_settings, engine)
