@@ -2,8 +2,40 @@
    شبکه خون — BloodNet design system
    Light theme inspired by the Iranian Blood Transfusion Organization style:
    white surfaces, red primary, soft pink tints, pill buttons, rounded cards.
-   Fully offline: system fonts + inline SVG only.
+   Fully offline: bundled Vazirmatn (OFL) + inline SVG only.
    ========================================================================== */
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --red: #d32f2f;
@@ -57,7 +89,7 @@
   --shadow: 0 14px 34px rgba(150, 45, 45, 0.09);
   --shadow-sm: 0 3px 12px rgba(150, 45, 45, 0.06);
 
-  --font: "Segoe UI", Tahoma, "Vazirmatn", "IRANSans", Arial, sans-serif;
+  --font: "Vazirmatn", "Segoe UI", Tahoma, "IRANSans", Arial, sans-serif;
 }
 
 /* --------------------------------------------------------------------------
